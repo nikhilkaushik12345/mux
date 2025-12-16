@@ -12,10 +12,10 @@ function getAuthorizationCodeFromUrl() {
 
 function loginWithMux() {
   const authUrl =
-    "https://auth.mux.com/oauth2/authorize" +
-    "?client_id=client_01KCKJCQKQNEERVGS79ZV2GG6T" +
-    "&redirect_uri=" + encodeURIComponent(window.location.origin + "/callback") +
-    "&response_type=code";
+  "https://auth.mux.com/oauth2/authorize" +
+  "?client_id=client_01KCKJCQKQNEERVGS79ZV2GG6T" +
+  "&redirect_uri=" + encodeURIComponent("https://mux-9qx2.onrender.com/callback") +
+  "&response_type=code";
 
   window.location.href = authUrl;
 }

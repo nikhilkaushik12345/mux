@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login with Mux</title>
+
+<script>
+function getAuthorizationCodeFromUrl() {
+  return new URLSearchParams(window.location.search).get("code");
+}
+
+function loginWithMux() {
+  const authUrl =
+    "https://auth.mux.com/oauth2/authorize" +
+    "?client_id=client_01KCKGH6K38ZDF6W81Z976FCBA" +
+    "&redirect_uri=" + encodeURIComponent(window.location.origin + "/callback") +
+    "&response_type=code";
+
+  window.location.href = authUrl;
+}
+
+function fetchAssets(code) {
+  fetch("/exchange", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code })
+  })
+  .then(r => r.json())
+  .then(data => {
+    document.getElementById("output").textContent =
+      JSON.stringify(data, null, 2);
+  })
+  .catch(err => {
+    document.getElementById("output").textContent =
+      "Error: " + err;
+  });
+}
+
+window.onload = () => {
+  const code = getAuthorizationCodeFromUrl();
+  if (code) fetchAssets(code);
+};
+</script>
+</head>
+
+<body>
+<h1>Login with Mux</h1>
+<button onclick="loginWithMux()">Login</button>
+<pre id="output"></pre>
+</body>
+</html>

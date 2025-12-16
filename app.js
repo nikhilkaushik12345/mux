@@ -25,7 +25,7 @@ app.post("/exchange", async (req, res) => {
     params.append("grant_type", "authorization_code");
     params.append("code", code);
 
-    // ✅ STATIC redirect_uri (FIXED)
+    // ✅ STATIC redirect_uri matches registered value
     params.append("redirect_uri", "https://mux-9qx2.onrender.com/callback");
 
     params.append("client_id", "client_01KCKJCQKQNEERVGS79ZV2GG6T");

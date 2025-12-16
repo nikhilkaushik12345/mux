@@ -25,7 +25,7 @@ app.post("/exchange", async (req, res) => {
     params.append("grant_type", "authorization_code");
     params.append("code", code);
 
-    // ✅ STATIC redirect_uri matches registered value
+    // ✅ STATIC redirect_uri
     params.append("redirect_uri", "https://mux-9qx2.onrender.com/callback");
 
     params.append("client_id", "client_01KCKJCQKQNEERVGS79ZV2GG6T");
@@ -34,6 +34,7 @@ app.post("/exchange", async (req, res) => {
       "ecc2ca2264bf59bfb78ac385a8e2b7a57097c53e3d05a3908e35aa89226fd2d0"
     );
 
+    // 1️⃣ Exchange authorization code for access token
     const tokenRes = await fetch("https://auth.mux.com/oauth2/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -43,12 +44,13 @@ app.post("/exchange", async (req, res) => {
     const token = await tokenRes.json();
     if (!token.access_token) return res.status(400).json(token);
 
+    // 2️⃣ Call MCP endpoint with JSON-RPC
     const mcpRes = await fetch("https://mcp.mux.com/", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${token.access_token}`,
         "Content-Type": "application/json",
-        "Accept": "application/json"
+        "Accept": "text/event-stream, application/json"
       },
       body: JSON.stringify({
         jsonrpc: "2.0",
@@ -61,8 +63,34 @@ app.post("/exchange", async (req, res) => {
       })
     });
 
-    const mcpData = await mcpRes.json();
-    res.json(mcpData);
+    const text = await mcpRes.text();
+
+    // parse SSE text lines if returned as stream
+    const lines = text.split("\n");
+    const dataLines = lines
+      .filter(line => line.startsWith("data: "))
+      .map(line => line.replace(/^data:\s*/, ""));
+
+    let parsedData;
+    if (dataLines.length > 0) {
+      parsedData = JSON.parse(dataLines[0]);
+      if (
+        parsedData.result &&
+        parsedData.result.content &&
+        parsedData.result.content[0] &&
+        typeof parsedData.result.content[0].text === "string"
+      ) {
+        try {
+          parsedData = JSON.parse(parsedData.result.content[0].text);
+        } catch {
+          parsedData = parsedData.result.content[0].text;
+        }
+      }
+    } else {
+      parsedData = text; // fallback
+    }
+
+    res.json(parsedData);
 
   } catch (err) {
     res.status(500).json({ error: err.message });

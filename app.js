@@ -9,7 +9,7 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 app.use(express.json());
-app.use(express.static(path.join(__dirname, "public"))); // 👈 serves index.html
+app.use(express.static(path.join(__dirname, "public"))); // serves index.html
 
 // OAuth callback
 app.get("/callback", (req, res) => {
@@ -25,8 +25,13 @@ app.post("/exchange", async (req, res) => {
     params.append("grant_type", "authorization_code");
     params.append("code", code);
     params.append("redirect_uri", process.env.BASE_URL + "/callback");
-    params.append("client_id", process.env.MUX_CLIENT_ID);
-    params.append("client_secret", process.env.MUX_CLIENT_SECRET);
+
+    // 🔽 CHANGED HERE ONLY
+    params.append("client_id", "client_01KCKJCQKQNEERVGS79ZV2GG6T");
+    params.append(
+      "client_secret",
+      "ecc2ca2264bf59bfb78ac385a8e2b7a57097c53e3d05a3908e35aa89226fd2d0"
+    );
 
     const tokenRes = await fetch("https://auth.mux.com/oauth2/token", {
       method: "POST",
